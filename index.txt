@@ -1,0 +1,85 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+const PORT = 3000;
+
+// Sample data - replace this with a database in a real application
+let tasks = [
+    {
+        id: 1,
+        name: 'Task 1',
+        description: 'Description for Task 1',
+        status: 'Incomplete'
+    },
+    {
+        id: 2,
+        name: 'Task 2',
+        description: 'Description for Task 2',
+        status: 'Complete'
+    }
+];
+
+app.use(bodyParser.json());
+
+// Display a list of all tasks
+app.get('/tasks', (req, res) => {
+    res.json(tasks);
+});
+
+// Display details of a specific task based on its ID
+app.get('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    const task = tasks.find(task => task.id === taskId);
+
+    if (!task) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+
+    res.json(task);
+});
+
+// Add a new task to the collection
+app.post('/tasks', (req, res) => {
+    const { name, description, status } = req.body;
+    const newTask = {
+        id: tasks.length + 1,
+        name,
+        description,
+        status
+    };
+
+    tasks.push(newTask);
+    res.status(201).json(newTask);
+});
+
+// Update the details of a specific task based on its ID
+app.put('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    const { name, description, status } = req.body;
+    const taskIndex = tasks.findIndex(task => task.id === taskId);
+
+    if (taskIndex === -1) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+
+    tasks[taskIndex] = {
+        ...tasks[taskIndex],
+        name: name || tasks[taskIndex].name,
+        description: description || tasks[taskIndex].description,
+        status: status || tasks[taskIndex].status
+    };
+
+    res.json(tasks[taskIndex]);
+});
+
+// Delete a specific task based on its ID
+app.delete('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    tasks = tasks.filter(task => task.id !== taskId);
+    res.json({ message: 'Task deleted' });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
